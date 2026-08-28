@@ -32,7 +32,7 @@ These defaults are temporary. User-managed encrypted snippets will replace them 
 
 The Android app uses API 36, JDK 17, Gradle 9.5.0, Android Gradle Plugin 9.3.2, and AGP built-in Kotlin.
 
-The supported runtime range is Android 8.0 (API 26) through Android 16. CI builds the APK, runs unit tests, launches the app, registers and selects the IME, and verifies that its input window appears on Android emulator API 26 and API 35.
+The supported runtime range is Android 8.0 (API 26) through Android 16 (API 36). CI builds the APK, runs unit tests, launches the app, registers and selects the IME, and verifies that its input window appears on Android emulator API 26 and API 36.
 
 ```bash
 ./gradlew test assembleDebug
