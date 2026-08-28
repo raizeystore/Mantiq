@@ -65,4 +65,3 @@ object TemporalOffsetParser {
             .setScale(0, RoundingMode.HALF_UP)
             .longValueExact()
 }
-

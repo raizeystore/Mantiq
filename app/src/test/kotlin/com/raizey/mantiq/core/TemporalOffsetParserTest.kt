@@ -1,9 +1,9 @@
 package com.raizey.mantiq.core
 
 import java.time.Duration
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
+import org.junit.Test
 
 class TemporalOffsetParserTest {
     @Test
@@ -30,8 +30,11 @@ class TemporalOffsetParserTest {
 
     @Test
     fun invalidOffsetsAreRejected() {
-        assertFailsWith<IllegalArgumentException> { TemporalOffsetParser.parse("1.5months") }
-        assertFailsWith<IllegalArgumentException> { TemporalOffsetParser.parse("01:90") }
+        assertThrows(IllegalArgumentException::class.java) {
+            TemporalOffsetParser.parse("1.5months")
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            TemporalOffsetParser.parse("01:90")
+        }
     }
 }
-

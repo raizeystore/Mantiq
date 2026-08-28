@@ -4,8 +4,8 @@ import java.time.Clock
 import java.time.Instant
 import java.time.ZoneOffset
 import java.util.Locale
-import kotlin.test.Test
-import kotlin.test.assertEquals
+import org.junit.Assert.assertEquals
+import org.junit.Test
 
 class TemplateEngineTest {
     private val context = TemplateContext(
@@ -34,4 +34,3 @@ class TemplateEngineTest {
         assertEquals("2026-08-30", TemplateEngine().render("{{date+1.5}}", context))
     }
 }
-

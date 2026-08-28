@@ -34,4 +34,3 @@ class SnippetEngine(
         return text.substring(start)
     }
 }
-

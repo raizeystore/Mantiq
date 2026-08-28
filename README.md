@@ -26,16 +26,10 @@ These defaults are temporary. User-managed encrypted snippets will replace them 
 
 ## Build
 
-The Android app uses API 36, JDK 17, Gradle 9.5.0, Android Gradle Plugin 9.3.2, and AGP built-in Kotlin. The standalone core module uses Kotlin 2.4.10.
+The Android app uses API 36, JDK 17, Gradle 9.5.0, Android Gradle Plugin 9.3.2, and AGP built-in Kotlin.
 
 ```bash
 ./gradlew test assembleDebug
-```
-
-Without an Android SDK, the pure Kotlin engine can still be tested with:
-
-```bash
-./gradlew :core:test
 ```
 
 ## Privacy baseline

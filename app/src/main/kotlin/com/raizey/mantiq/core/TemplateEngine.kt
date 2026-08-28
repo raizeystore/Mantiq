@@ -43,4 +43,3 @@ class TemplateEngine {
             DateTimeFormatter.ofPattern(pattern, context.locale).format(value)
         }
 }
-

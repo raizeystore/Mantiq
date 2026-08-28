@@ -17,15 +17,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "Mantiq"
-include(":core")
-
-val includeAndroid =
-    providers.gradleProperty("includeAndroid").orNull == "true" ||
-        !System.getenv("ANDROID_HOME").isNullOrBlank() ||
-        !System.getenv("ANDROID_SDK_ROOT").isNullOrBlank() ||
-        file("local.properties").exists()
-
-if (includeAndroid) {
-    include(":app")
-}
-
+include(":app")

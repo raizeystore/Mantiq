@@ -34,4 +34,3 @@ class SnippetTrie(snippets: Iterable<Snippet>) {
         node.snippet = snippet
     }
 }
-

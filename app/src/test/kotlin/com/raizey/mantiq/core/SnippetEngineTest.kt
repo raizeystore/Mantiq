@@ -4,9 +4,9 @@ import java.time.Clock
 import java.time.Instant
 import java.time.ZoneOffset
 import java.util.Locale
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Test
 
 class SnippetEngineTest {
     private val context = TemplateContext(

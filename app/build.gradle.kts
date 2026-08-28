@@ -1,5 +1,5 @@
 plugins {
-    id("com.android.application") version "9.3.2"
+    id("com.android.application")
 }
 
 android {
@@ -31,5 +31,5 @@ android {
 }
 
 dependencies {
-    implementation(project(":core"))
+    testImplementation("junit:junit:4.13.2")
 }

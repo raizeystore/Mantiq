@@ -10,4 +10,3 @@ data class SnippetExpansion(
     val deleteCharacters: Int,
     val replacement: String,
 )
-
