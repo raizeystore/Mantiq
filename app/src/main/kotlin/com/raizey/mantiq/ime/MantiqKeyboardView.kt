@@ -219,15 +219,15 @@ class MantiqKeyboardView(
     private fun toolbarChip(label: String, accent: Boolean = false, action: () -> Unit): TextView =
         keyView(
             Key(label, role = if (accent) KeyRole.ACCENT else KeyRole.ACTION),
-            action,
             textSize = 13f,
+            action = action,
         ).apply {
             layoutParams = LayoutParams(if (label == "AI") 54.dp else 66.dp, 38.dp).apply {
                 setMargins(2.dp, 2.dp, 2.dp, 2.dp)
             }
         }
 
-    private fun keyView(key: Key, action: () -> Unit, textSize: Float = 18f) = TextView(context).apply {
+    private fun keyView(key: Key, textSize: Float = 18f, action: () -> Unit) = TextView(context).apply {
         text = key.label
         this.textSize = if (key.role == KeyRole.SPACE) 13f else textSize
         setTextColor(if (key.role == KeyRole.ACCENT) ACCENT else Color.WHITE)
@@ -243,7 +243,7 @@ class MantiqKeyboardView(
         }
     }
 
-    private fun repeatingKey(key: Key, action: () -> Unit): TextView = keyView(key, action).apply {
+    private fun repeatingKey(key: Key, action: () -> Unit): TextView = keyView(key, action = action).apply {
         setOnTouchListener { view, event ->
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
