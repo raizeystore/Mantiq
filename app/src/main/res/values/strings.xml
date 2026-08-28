@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Mantiq</string>
+    <string name="keyboard_name">Mantiq Keyboard</string>
+    <string name="welcome_title">Mantiq</string>
+    <string name="welcome_body">لوحة مفاتيح عربية وإنجليزية مع اختصارات ذكية وحسابات زمنية دقيقة.</string>
+    <string name="enable_keyboard">تفعيل Mantiq من إعدادات لوحة المفاتيح</string>
+    <string name="choose_keyboard">اختيار Mantiq كلوحة حالية</string>
+</resources>
+
