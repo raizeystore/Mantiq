@@ -16,7 +16,8 @@ data class TemplateContext(
 )
 
 class TemplateEngine {
-    private val variable = Regex("""\{\{(time|date|datetime)([+-][^}]*)?}}""")
+    // Escape both closing braces explicitly for Android's ICU regex engine.
+    private val variable = Regex("""\{\{(time|date|datetime)([+-][^}]*)?\}\}""")
 
     fun render(template: String, context: TemplateContext = TemplateContext()): String =
         variable.replace(template) { match ->

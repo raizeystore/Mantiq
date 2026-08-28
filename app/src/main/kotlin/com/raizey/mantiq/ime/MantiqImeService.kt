@@ -15,14 +15,20 @@ import java.time.ZoneId
 import java.util.Locale
 
 class MantiqImeService : InputMethodService(), MantiqKeyboardView.Listener {
-    private val snippets = SnippetEngine(
-        listOf(
-            Snippet("!بعد1.5", "{{time+1.5h}}"),
-            Snippet("!بعد4", "{{time+4h}}"),
-            Snippet("!تاريخ", "{{date}}"),
-            Snippet("!الوقت", "{{time}}"),
-        ),
-    )
+    private val snippets: SnippetEngine? by lazy(LazyThreadSafetyMode.NONE) {
+        runCatching {
+            SnippetEngine(
+                listOf(
+                    Snippet("!بعد1.5", "{{time+1.5h}}"),
+                    Snippet("!بعد4", "{{time+4h}}"),
+                    Snippet("!تاريخ", "{{date}}"),
+                    Snippet("!الوقت", "{{time}}"),
+                ),
+            )
+        }.onFailure {
+            CrashStore.record(this, "MantiqImeService.snippets", it)
+        }.getOrNull()
+    }
 
     private val templateContext
         get() = TemplateContext(
@@ -62,7 +68,7 @@ class MantiqImeService : InputMethodService(), MantiqKeyboardView.Listener {
         val sensitive = SensitiveFieldDetector.isSensitive(currentInputEditorInfo?.inputType ?: 0)
         if (!sensitive) {
             val beforeCursor = connection.getTextBeforeCursor(MAX_TRIGGER_LENGTH, 0)?.toString().orEmpty()
-            val expansion = snippets.expandBeforeDelimiter(beforeCursor, templateContext)
+            val expansion = snippets?.expandBeforeDelimiter(beforeCursor, templateContext)
             if (expansion != null) {
                 connection.deleteSurroundingText(expansion.deleteCharacters, 0)
                 connection.commitText(expansion.replacement + " ", 1)
