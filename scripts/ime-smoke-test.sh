@@ -52,9 +52,21 @@ if [[ "${selected_ime}" != "${ime_component}" && "${selected_ime}" != "${ime_com
   exit 1
 fi
 
-launch_output="$(adb shell am start -W -n "${activity_component}" --ez open_test_keyboard true)"
-echo "${launch_output}"
-grep -q "Status: ok" <<<"${launch_output}"
+adb shell input swipe 160 560 160 180 300
+sleep 1
+adb shell uiautomator dump /sdcard/mantiq-window.xml >/dev/null
+adb pull /sdcard/mantiq-window.xml /tmp/mantiq-window.xml >/dev/null
+
+test_field_node="$(grep -o '<node[^>]*resource-id="com.raizey.mantiq:id/keyboard_test_field"[^>]*>' /tmp/mantiq-window.xml | head -1)"
+test_field_bounds="$(sed -n 's/.*bounds="\[\([0-9]*\),\([0-9]*\)\]\[\([0-9]*\),\([0-9]*\)\]".*/\1 \2 \3 \4/p' <<<"${test_field_node}")"
+if [[ -z "${test_field_bounds}" ]]; then
+  echo "Could not locate the Mantiq test field" >&2
+  exit 1
+fi
+read -r left top right bottom <<<"${test_field_bounds}"
+tap_x=$(((left + right) / 2))
+tap_y=$(((top + bottom) / 2))
+adb shell input tap "${tap_x}" "${tap_y}"
 sleep 3
 
 adb shell dumpsys input_method > /tmp/mantiq-input-method.txt
