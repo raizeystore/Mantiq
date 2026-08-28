@@ -1,6 +1,7 @@
 package com.raizey.mantiq.ime
 
 import android.inputmethodservice.InputMethodService
+import android.content.res.Configuration
 import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
@@ -8,6 +9,7 @@ import android.widget.Toast
 import com.raizey.mantiq.core.Snippet
 import com.raizey.mantiq.core.SnippetEngine
 import com.raizey.mantiq.core.TemplateContext
+import com.raizey.mantiq.diagnostics.CrashStore
 import java.time.Clock
 import java.time.ZoneId
 import java.util.Locale
@@ -32,12 +34,27 @@ class MantiqImeService : InputMethodService(), MantiqKeyboardView.Listener {
             dateTimePattern = "dd/MM/yyyy h:mm a",
         )
 
-    override fun onCreateInputView(): View = MantiqKeyboardView(this, this)
+    override fun onCreateInputView(): View = runCatching {
+        MantiqKeyboardView(this, this)
+    }.getOrElse { error ->
+        CrashStore.record(this, "MantiqImeService.onCreateInputView", error)
+        FallbackKeyboardView(this, this)
+    }
+
+    override fun onEvaluateInputViewShown(): Boolean {
+        val systemDecision = super.onEvaluateInputViewShown()
+        val configuration = resources.configuration
+        val visibleHardwareKeyboard =
+            configuration.keyboard != Configuration.KEYBOARD_NOKEYS &&
+                configuration.hardKeyboardHidden == Configuration.HARDKEYBOARDHIDDEN_NO
+        return systemDecision || !visibleHardwareKeyboard
+    }
 
     override fun onEvaluateFullscreenMode(): Boolean = false
 
     override fun onText(text: String) {
-        currentInputConnection?.commitText(text, 1)
+        runCatching { currentInputConnection?.commitText(text, 1) }
+            .onFailure { CrashStore.record(this, "MantiqImeService.onText", it) }
     }
 
     override fun onSpace() {
@@ -85,4 +102,3 @@ class MantiqImeService : InputMethodService(), MantiqKeyboardView.Listener {
         const val MAX_TRIGGER_LENGTH = 128
     }
 }
-

@@ -1,145 +1,218 @@
 package com.raizey.mantiq
 
 import android.app.Activity
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.provider.Settings
 import android.view.Gravity
+import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
+import com.raizey.mantiq.diagnostics.CrashStore
+import com.raizey.mantiq.diagnostics.DeviceDiagnostics
+import com.raizey.mantiq.ime.MantiqImeService
 
 class MainActivity : Activity() {
     private lateinit var statusView: TextView
+    private lateinit var detailView: TextView
     private lateinit var testField: EditText
+    private var uiReady = false
+
+    private val inputManager
+        get() = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+
+    private val imeComponent
+        get() = ComponentName(this, MantiqImeService::class.java)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(buildContent())
+        runCatching {
+            setContentView(R.layout.activity_main)
+            bindViews()
+            uiReady = true
+            updateKeyboardStatus()
+            if (intent.getBooleanExtra(EXTRA_OPEN_TEST_KEYBOARD, false)) {
+                window.decorView.postDelayed(
+                    { openKeyboardForTesting() },
+                    AUTOMATED_TEST_DELAY_MS,
+                )
+            }
+        }.onFailure { error ->
+            CrashStore.record(this, "MainActivity.onCreate", error)
+            showSafeMode(error)
+        }
     }
 
     override fun onResume() {
         super.onResume()
-        if (::statusView.isInitialized) updateKeyboardStatus()
+        if (uiReady) window.decorView.post { updateKeyboardStatus() }
     }
 
-    private fun buildContent(): LinearLayout {
-        val padding = 24.dp
-        return LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER_HORIZONTAL
-            setPadding(padding, 48.dp, padding, padding)
-            setBackgroundColor(Color.rgb(10, 14, 19))
+    private fun bindViews() {
+        statusView = findViewById(R.id.keyboard_status)
+        detailView = findViewById(R.id.keyboard_status_detail)
+        testField = findViewById(R.id.keyboard_test_field)
 
-            addView(ImageView(context).apply {
-                setImageResource(R.mipmap.ic_launcher)
-                contentDescription = getString(R.string.app_name)
-            }, LinearLayout.LayoutParams(96.dp, 96.dp).apply {
-                bottomMargin = 16.dp
-            })
-
-            addView(TextView(context).apply {
-                text = getString(R.string.welcome_title)
-                textSize = 36f
-                setTextColor(Color.rgb(91, 224, 179))
-                gravity = Gravity.CENTER
-            }, matchWrap())
-
-            addView(TextView(context).apply {
-                text = getString(R.string.welcome_body)
-                textSize = 18f
-                setTextColor(Color.WHITE)
-                gravity = Gravity.CENTER
-                setPadding(0, 24.dp, 0, 32.dp)
-            }, matchWrap())
-
-            addView(actionButton(R.string.enable_keyboard) {
-                startActivity(Intent(Settings.ACTION_INPUT_METHOD_SETTINGS))
-            }, matchWrap())
-
-            addView(actionButton(R.string.choose_keyboard) {
-                (getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager)
-                    .showInputMethodPicker()
-            }, matchWrap())
-
-            statusView = TextView(context).apply {
-                textSize = 16f
-                gravity = Gravity.CENTER
-                setPadding(8.dp, 12.dp, 8.dp, 20.dp)
-            }
-            addView(statusView, matchWrap())
-
-            testField = EditText(context).apply {
-                hint = getString(R.string.test_keyboard)
-                textSize = 18f
-                setTextColor(Color.WHITE)
-                setHintTextColor(Color.rgb(155, 165, 175))
-                setBackgroundColor(Color.rgb(27, 35, 45))
-                setPadding(16.dp, 14.dp, 16.dp, 14.dp)
-                gravity = Gravity.START
-                isSingleLine = false
-                minLines = 2
-            }
-            addView(testField, matchWrap())
-
-            addView(actionButton(R.string.open_keyboard) {
-                openKeyboardForTesting()
-            }, matchWrap())
-
-            updateKeyboardStatus()
+        findViewById<Button>(R.id.enable_keyboard_button).setOnClickListener {
+            openInputMethodSettings()
         }
+        findViewById<Button>(R.id.choose_keyboard_button).setOnClickListener {
+            chooseCurrentKeyboard()
+        }
+        findViewById<Button>(R.id.open_keyboard_button).setOnClickListener {
+            openKeyboardForTesting()
+        }
+        findViewById<Button>(R.id.copy_diagnostics_button).setOnClickListener {
+            copyDiagnostics()
+        }
+    }
+
+    private fun currentState(): KeyboardState {
+        val enabled = runCatching {
+            inputManager.enabledInputMethodList.any {
+                it.packageName == packageName && it.serviceName == imeComponent.className
+            }
+        }.getOrDefault(false)
+
+        val selectedComponent = runCatching {
+            val value = Settings.Secure.getString(
+                contentResolver,
+                Settings.Secure.DEFAULT_INPUT_METHOD,
+            ).orEmpty()
+            ComponentName.unflattenFromString(value)
+        }.getOrNull()
+
+        return KeyboardState(enabled = enabled, selected = selectedComponent == imeComponent)
     }
 
     private fun updateKeyboardStatus() {
-        val inputManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        val enabled = inputManager.enabledInputMethodList.any {
-            it.packageName == packageName && it.serviceName == MANTIQ_SERVICE
+        runCatching {
+            val state = currentState()
+            when {
+                state.selected -> {
+                    statusView.setText(R.string.status_selected)
+                    statusView.setTextColor(getColor(R.color.mantiq_accent))
+                    detailView.setText(R.string.status_selected_detail)
+                }
+                state.enabled -> {
+                    statusView.setText(R.string.status_enabled)
+                    statusView.setTextColor(getColor(R.color.mantiq_warning))
+                    detailView.setText(R.string.status_enabled_detail)
+                }
+                else -> {
+                    statusView.setText(R.string.status_disabled)
+                    statusView.setTextColor(getColor(R.color.mantiq_error))
+                    detailView.setText(R.string.status_disabled_detail)
+                }
+            }
+        }.onFailure { error ->
+            CrashStore.record(this, "MainActivity.updateKeyboardStatus", error)
+            statusView.setText(R.string.status_unknown)
+            statusView.setTextColor(getColor(R.color.mantiq_error))
+            detailView.text = error.javaClass.simpleName
         }
-        val selected = Settings.Secure.getString(
-            contentResolver,
-            Settings.Secure.DEFAULT_INPUT_METHOD,
-        ).orEmpty().contains(packageName)
+    }
 
-        val (message, color) = when {
-            enabled && selected -> R.string.status_selected to Color.rgb(91, 224, 179)
-            enabled -> R.string.status_enabled to Color.rgb(255, 193, 7)
-            else -> R.string.status_disabled to Color.rgb(255, 107, 107)
+    private fun openInputMethodSettings() {
+        runCatching { startActivity(Intent(Settings.ACTION_INPUT_METHOD_SETTINGS)) }
+            .recoverCatching { startActivity(Intent(Settings.ACTION_SETTINGS)) }
+            .onFailure { showError(it) }
+    }
+
+    private fun chooseCurrentKeyboard() {
+        if (!currentState().enabled) {
+            Toast.makeText(this, R.string.enable_first_message, Toast.LENGTH_LONG).show()
+            openInputMethodSettings()
+            return
         }
-        statusView.setText(message)
-        statusView.setTextColor(color)
+        runCatching { inputManager.showInputMethodPicker() }
+            .onFailure { error ->
+                CrashStore.record(this, "MainActivity.chooseCurrentKeyboard", error)
+                openInputMethodSettings()
+            }
     }
 
     private fun openKeyboardForTesting() {
-        testField.requestFocus()
-        testField.post {
-            (getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager)
-                .showSoftInput(testField, InputMethodManager.SHOW_IMPLICIT)
+        if (!currentState().selected) {
+            Toast.makeText(this, R.string.choose_first_message, Toast.LENGTH_LONG).show()
+            chooseCurrentKeyboard()
+            return
         }
+
+        testField.requestFocus()
+        window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
+        testField.postDelayed({
+            inputManager.showSoftInput(testField, InputMethodManager.SHOW_IMPLICIT)
+        }, KEYBOARD_OPEN_DELAY_MS)
     }
 
-    private fun actionButton(label: Int, action: () -> Unit) = Button(this).apply {
-        text = getString(label)
-        textSize = 16f
-        isAllCaps = false
-        setOnClickListener { action() }
+    private fun copyDiagnostics() {
+        val report = DeviceDiagnostics.create(this, currentState(), imeComponent)
+        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        clipboard.setPrimaryClip(ClipData.newPlainText("Mantiq diagnostics", report))
+        Toast.makeText(this, R.string.diagnostics_copied, Toast.LENGTH_SHORT).show()
     }
 
-    private fun matchWrap() = LinearLayout.LayoutParams(
-        LinearLayout.LayoutParams.MATCH_PARENT,
-        LinearLayout.LayoutParams.WRAP_CONTENT,
-    ).apply {
-        bottomMargin = 12.dp
+    private fun showSafeMode(error: Throwable) {
+        val padding = (20 * resources.displayMetrics.density).toInt()
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER_HORIZONTAL
+            setPadding(padding, padding, padding, padding)
+            setBackgroundColor(Color.rgb(10, 14, 19))
+        }
+        container.addView(TextView(this).apply {
+            setText(R.string.safe_mode_title)
+            textSize = 24f
+            setTextColor(Color.WHITE)
+            gravity = Gravity.CENTER
+        })
+        container.addView(TextView(this).apply {
+            text = getString(R.string.safe_mode_body, error.javaClass.simpleName)
+            textSize = 16f
+            setTextColor(Color.LTGRAY)
+            gravity = Gravity.CENTER
+            setPadding(0, padding, 0, padding)
+        })
+        container.addView(Button(this).apply {
+            setText(R.string.enable_keyboard)
+            isAllCaps = false
+            setOnClickListener { openInputMethodSettings() }
+        })
+        container.addView(Button(this).apply {
+            setText(R.string.copy_diagnostics)
+            isAllCaps = false
+            setOnClickListener { copySafeModeDiagnostics(error) }
+        })
+        setContentView(container)
     }
 
-    private val Int.dp: Int
-        get() = (this * resources.displayMetrics.density).toInt()
+    private fun copySafeModeDiagnostics(error: Throwable) {
+        val report = DeviceDiagnostics.createSafeMode(this, error)
+        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        clipboard.setPrimaryClip(ClipData.newPlainText("Mantiq diagnostics", report))
+        Toast.makeText(this, R.string.diagnostics_copied, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun showError(error: Throwable) {
+        CrashStore.record(this, "MainActivity", error)
+        Toast.makeText(this, R.string.unexpected_error, Toast.LENGTH_LONG).show()
+    }
+
+    data class KeyboardState(val enabled: Boolean, val selected: Boolean)
 
     private companion object {
-        const val MANTIQ_SERVICE = "com.raizey.mantiq.ime.MantiqImeService"
+        const val KEYBOARD_OPEN_DELAY_MS = 200L
+        const val AUTOMATED_TEST_DELAY_MS = 600L
+        const val EXTRA_OPEN_TEST_KEYBOARD = "open_test_keyboard"
     }
 }

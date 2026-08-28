@@ -1,4 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="ic_launcher_background">#0A0E13</color>
+    <color name="mantiq_background">#0A0E13</color>
+    <color name="mantiq_surface">#111820</color>
+    <color name="mantiq_surface_high">#1B232D</color>
+    <color name="mantiq_border">#374652</color>
+    <color name="mantiq_accent">#5BE0B3</color>
+    <color name="mantiq_warning">#FFC107</color>
+    <color name="mantiq_error">#FF6B6B</color>
+    <color name="mantiq_text">#FFFFFF</color>
+    <color name="mantiq_text_secondary">#C5CDD5</color>
+    <color name="mantiq_text_muted">#9BA5AF</color>
+    <color name="mantiq_button_text">#07130F</color>
 </resources>

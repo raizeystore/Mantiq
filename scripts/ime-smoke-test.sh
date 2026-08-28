@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+apk_path="${1:-app/build/outputs/apk/debug/app-debug.apk}"
+package_name="com.raizey.mantiq"
+activity_component="${package_name}/.MainActivity"
+ime_component="${package_name}/.ime.MantiqImeService"
+ime_component_full="${package_name}/${package_name}.ime.MantiqImeService"
+
+if [[ ! -f "${apk_path}" ]]; then
+  echo "APK not found: ${apk_path}" >&2
+  exit 1
+fi
+
+adb install -r "${apk_path}"
+adb logcat -c
+
+launch_output="$(adb shell am start -W -n "${activity_component}")"
+echo "${launch_output}"
+grep -q "Status: ok" <<<"${launch_output}"
+sleep 2
+
+if ! adb shell pidof "${package_name}" >/dev/null; then
+  echo "Mantiq process did not remain alive after launch" >&2
+  exit 1
+fi
+
+adb shell dumpsys package "${package_name}" > /tmp/mantiq-package.txt
+grep -q "MantiqImeService" /tmp/mantiq-package.txt
+
+adb shell ime list -a > /tmp/mantiq-ime-list.txt
+grep -q "${ime_component}" /tmp/mantiq-ime-list.txt
+
+adb shell ime enable "${ime_component}"
+adb shell ime set "${ime_component}"
+adb shell settings put secure show_ime_with_hard_keyboard 1
+
+selected_ime="$(adb shell settings get secure default_input_method | tr -d '\r')"
+if [[ "${selected_ime}" != "${ime_component}" && "${selected_ime}" != "${ime_component_full}" ]]; then
+  echo "Unexpected selected IME: ${selected_ime}" >&2
+  exit 1
+fi
+
+adb shell am force-stop "${package_name}"
+launch_output="$(adb shell am start -W -n "${activity_component}" --ez open_test_keyboard true)"
+echo "${launch_output}"
+grep -q "Status: ok" <<<"${launch_output}"
+sleep 3
+
+adb shell dumpsys input_method > /tmp/mantiq-input-method.txt
+grep -q "MantiqImeService" /tmp/mantiq-input-method.txt
+if ! grep -Eq "mInputShown=true|mInputViewShown=true|isInputViewShown=true" /tmp/mantiq-input-method.txt; then
+  echo "Mantiq is selected but its input view is not shown" >&2
+  cat /tmp/mantiq-input-method.txt >&2
+  exit 1
+fi
+
+adb shell uiautomator dump /sdcard/mantiq-window.xml >/dev/null
+adb pull /sdcard/mantiq-window.xml /tmp/mantiq-window.xml >/dev/null
+grep -q "Mantiq" /tmp/mantiq-window.xml
+
+adb exec-out screencap -p > /tmp/mantiq-smoke.png
+adb logcat -d > /tmp/mantiq-logcat.txt
+if grep -A 15 -B 2 "FATAL EXCEPTION" /tmp/mantiq-logcat.txt | grep -q "${package_name}"; then
+  echo "Mantiq crashed during the smoke test" >&2
+  grep -A 30 -B 2 "FATAL EXCEPTION" /tmp/mantiq-logcat.txt >&2
+  exit 1
+fi
+
+echo "Mantiq IME smoke test passed"

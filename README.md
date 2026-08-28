@@ -8,6 +8,8 @@ Mantiq is an Android-first intelligent keyboard built in Kotlin. The project is 
 - Arabic and English layouts.
 - Guided activation screen with live enabled/selected status and a test field.
 - Adaptive Mantiq application icon.
+- Safe-mode launcher UI and local crash diagnostics.
+- Fallback keyboard view if the full input view cannot be created.
 - Exact in-memory snippet lookup.
 - Dynamic time and date templates.
 - Fractional offsets such as `{{time+1.5h}}` and bare `{{time+1.5}}`.
@@ -29,6 +31,8 @@ These defaults are temporary. User-managed encrypted snippets will replace them 
 ## Build
 
 The Android app uses API 36, JDK 17, Gradle 9.5.0, Android Gradle Plugin 9.3.2, and AGP built-in Kotlin.
+
+The supported runtime range is Android 8.0 (API 26) through Android 16. CI builds the APK, runs unit tests, launches the app, registers and selects the IME, and verifies that its input window appears on Android emulator API 26 and API 35.
 
 ```bash
 ./gradlew test assembleDebug
