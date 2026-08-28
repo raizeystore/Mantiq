@@ -52,12 +52,18 @@ if [[ "${selected_ime}" != "${ime_component}" && "${selected_ime}" != "${ime_com
   exit 1
 fi
 
-adb shell input swipe 160 560 160 180 300
-sleep 1
-adb shell uiautomator dump /sdcard/mantiq-window.xml >/dev/null
-adb pull /sdcard/mantiq-window.xml /tmp/mantiq-window.xml >/dev/null
+test_field_node=""
+for _ in 1 2 3 4 5; do
+  adb shell uiautomator dump /sdcard/mantiq-window.xml >/dev/null
+  adb pull /sdcard/mantiq-window.xml /tmp/mantiq-window.xml >/dev/null
+  test_field_node="$(grep -o '<node[^>]*resource-id="com.raizey.mantiq:id/keyboard_test_field"[^>]*>' /tmp/mantiq-window.xml | head -1 || true)"
+  if [[ -n "${test_field_node}" ]]; then
+    break
+  fi
+  adb shell input swipe 160 540 160 150 300
+  sleep 1
+done
 
-test_field_node="$(grep -o '<node[^>]*resource-id="com.raizey.mantiq:id/keyboard_test_field"[^>]*>' /tmp/mantiq-window.xml | head -1)"
 test_field_bounds="$(sed -n 's/.*bounds="\[\([0-9]*\),\([0-9]*\)\]\[\([0-9]*\),\([0-9]*\)\]".*/\1 \2 \3 \4/p' <<<"${test_field_node}")"
 if [[ -z "${test_field_bounds}" ]]; then
   echo "Could not locate the Mantiq test field" >&2

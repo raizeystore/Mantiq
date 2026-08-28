@@ -4,90 +4,187 @@
     android:layout_height="match_parent"
     android:background="@color/mantiq_background"
     android:fillViewport="true"
-    android:fitsSystemWindows="true">
+    android:fitsSystemWindows="true"
+    android:overScrollMode="never">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_horizontal"
+        android:layoutDirection="rtl"
         android:orientation="vertical"
-        android:paddingStart="24dp"
-        android:paddingTop="12dp"
-        android:paddingEnd="24dp"
-        android:paddingBottom="20dp">
+        android:paddingStart="20dp"
+        android:paddingTop="18dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="28dp">
 
-        <ImageView
-            android:layout_width="58dp"
-            android:layout_height="58dp"
-            android:contentDescription="@string/app_name"
-            android:src="@drawable/ic_launcher_foreground" />
-
-        <TextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:text="@string/welcome_title"
-            android:textColor="@color/mantiq_accent"
-            android:textSize="27sp"
-            android:textStyle="bold" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:contentDescription="@string/app_name"
+                android:src="@drawable/ic_launcher_foreground" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/welcome_title"
+                    android:textColor="@color/mantiq_text"
+                    android:textSize="28sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/version_label"
+                    android:textColor="@color/mantiq_accent"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:gravity="center"
+            android:layout_marginTop="8dp"
+            android:lineSpacingExtra="2dp"
             android:text="@string/welcome_body"
-            android:textColor="@color/mantiq_text"
-            android:textSize="13sp" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:background="@drawable/info_panel_background"
-            android:padding="8dp"
-            android:text="@string/system_settings_explanation"
             android:textColor="@color/mantiq_text_secondary"
-            android:textSize="12sp" />
+            android:textSize="14sp" />
 
-        <Button
-            android:id="@+id/enable_keyboard_button"
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:background="@drawable/card_background"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/setup_title"
+                android:textColor="@color/mantiq_text"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/keyboard_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="@string/status_unknown"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/keyboard_status_detail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:lineSpacingExtra="2dp"
+                android:textColor="@color/mantiq_text_secondary"
+                android:textSize="13sp" />
+
+            <Button
+                android:id="@+id/enable_keyboard_button"
+                style="@style/Widget.Mantiq.Button.Primary"
+                android:layout_marginTop="14dp"
+                android:text="@string/enable_keyboard" />
+
+            <Button
+                android:id="@+id/choose_keyboard_button"
+                style="@style/Widget.Mantiq.Button.Secondary"
+                android:layout_marginTop="8dp"
+                android:text="@string/choose_keyboard" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/accent_panel_background"
+                android:lineSpacingExtra="2dp"
+                android:padding="12dp"
+                android:text="@string/system_settings_explanation"
+                android:textColor="@color/mantiq_text_secondary"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <TextView
+            style="@style/Widget.Mantiq.SectionTitle"
+            android:layout_marginTop="22dp"
+            android:text="@string/keyboard_preferences_title" />
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:backgroundTint="@color/mantiq_accent"
-            android:text="@string/enable_keyboard"
-            android:textAllCaps="false"
-            android:textColor="@color/mantiq_button_text" />
+            android:background="@drawable/card_background"
+            android:orientation="vertical"
+            android:paddingStart="16dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="8dp">
 
-        <Button
-            android:id="@+id/choose_keyboard_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:backgroundTint="@color/mantiq_surface_high"
-            android:text="@string/choose_keyboard"
-            android:textAllCaps="false"
-            android:textColor="@color/mantiq_text" />
+            <Switch
+                android:id="@+id/haptic_switch"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:gravity="center_vertical"
+                android:text="@string/haptics_title"
+                android:textColor="@color/mantiq_text"
+                android:textSize="15sp"
+                android:thumbTint="@color/switch_thumb"
+                android:trackTint="@color/switch_track" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/mantiq_divider" />
+
+            <Switch
+                android:id="@+id/sound_switch"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:gravity="center_vertical"
+                android:text="@string/sound_title"
+                android:textColor="@color/mantiq_text"
+                android:textSize="15sp"
+                android:thumbTint="@color/switch_thumb"
+                android:trackTint="@color/switch_track" />
+        </LinearLayout>
 
         <TextView
-            android:id="@+id/keyboard_status"
+            style="@style/Widget.Mantiq.SectionTitle"
+            android:layout_marginTop="22dp"
+            android:text="@string/quick_tools_title" />
+
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:gravity="center"
-            android:text="@string/status_unknown"
-            android:textSize="15sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/keyboard_status_detail"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:gravity="center"
+            android:background="@drawable/card_background"
+            android:lineSpacingExtra="4dp"
+            android:padding="16dp"
+            android:text="@string/quick_tools_body"
             android:textColor="@color/mantiq_text_secondary"
-            android:textSize="12sp" />
+            android:textSize="14sp" />
+
+        <TextView
+            style="@style/Widget.Mantiq.SectionTitle"
+            android:layout_marginTop="22dp"
+            android:text="@string/test_title" />
 
         <EditText
             android:id="@+id/keyboard_test_field"
@@ -100,31 +197,23 @@
             android:importantForAutofill="noExcludeDescendants"
             android:inputType="textMultiLine|textCapSentences"
             android:focusableInTouchMode="true"
-            android:minHeight="66dp"
-            android:padding="10dp"
+            android:minHeight="96dp"
+            android:padding="14dp"
             android:textColor="@color/mantiq_text"
             android:textColorHint="@color/mantiq_text_muted"
-            android:textSize="15sp" />
+            android:textSize="16sp" />
 
         <Button
             android:id="@+id/open_keyboard_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:backgroundTint="@color/mantiq_accent"
-            android:text="@string/open_keyboard"
-            android:textAllCaps="false"
-            android:textColor="@color/mantiq_button_text" />
+            style="@style/Widget.Mantiq.Button.Primary"
+            android:layout_marginTop="10dp"
+            android:text="@string/open_keyboard" />
 
         <Button
             android:id="@+id/copy_diagnostics_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:backgroundTint="@color/mantiq_surface_high"
-            android:text="@string/copy_diagnostics"
-            android:textAllCaps="false"
-            android:textColor="@color/mantiq_text_secondary" />
+            style="@style/Widget.Mantiq.Button.Ghost"
+            android:layout_marginTop="12dp"
+            android:text="@string/copy_diagnostics" />
 
     </LinearLayout>
 </ScrollView>

@@ -25,11 +25,7 @@ class FallbackKeyboardView(
             textSize = 14f
         }, LayoutParams(LayoutParams.MATCH_PARENT, 36.dp))
 
-        listOf(
-            listOf("ض", "ص", "ث", "ق", "ف", "غ", "ع", "ه", "خ", "ح"),
-            listOf("ش", "س", "ي", "ب", "ل", "ا", "ت", "ن", "م", "ك"),
-            listOf("ئ", "ء", "ؤ", "ر", "ى", "ة", "و", "ز", "ظ"),
-        ).forEach(::addCharacterRow)
+        KeyboardLayouts.ARABIC_ROWS.forEach(::addCharacterRow)
 
         val controls = LinearLayout(context).apply {
             orientation = HORIZONTAL
@@ -46,7 +42,7 @@ class FallbackKeyboardView(
         val row = LinearLayout(context).apply {
             orientation = HORIZONTAL
             gravity = Gravity.CENTER
-            layoutDirection = LAYOUT_DIRECTION_RTL
+            layoutDirection = LAYOUT_DIRECTION_LTR
         }
         characters.forEach { character ->
             row.addView(key(character) { listener.onText(character) }, weight())

@@ -6,6 +6,9 @@
     <color name="mantiq_surface_high">#1B232D</color>
     <color name="mantiq_border">#374652</color>
     <color name="mantiq_accent">#5BE0B3</color>
+    <color name="mantiq_accent_soft">#142D29</color>
+    <color name="mantiq_accent_border">#2F6D5C</color>
+    <color name="mantiq_divider">#29343E</color>
     <color name="mantiq_warning">#FFC107</color>
     <color name="mantiq_error">#FF6B6B</color>
     <color name="mantiq_text">#FFFFFF</color>

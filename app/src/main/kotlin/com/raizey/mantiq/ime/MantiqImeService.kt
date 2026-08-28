@@ -100,6 +100,16 @@ class MantiqImeService : InputMethodService(), MantiqKeyboardView.Listener {
         }
     }
 
+    override fun onQuickSnippet(trigger: String) {
+        val connection = currentInputConnection ?: return
+        val sensitive = SensitiveFieldDetector.isSensitive(currentInputEditorInfo?.inputType ?: 0)
+        if (sensitive) return
+
+        val replacement = snippets?.expandTrigger(trigger, templateContext) ?: return
+        runCatching { connection.commitText(replacement, 1) }
+            .onFailure { CrashStore.record(this, "MantiqImeService.onQuickSnippet", it) }
+    }
+
     override fun onAiRequested() {
         Toast.makeText(this, "مساعد Mantiq AI سيُضاف بعد اكتمال المحرك الأساسي", Toast.LENGTH_SHORT).show()
     }

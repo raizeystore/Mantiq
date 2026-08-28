@@ -15,10 +15,12 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
 import com.raizey.mantiq.diagnostics.CrashStore
 import com.raizey.mantiq.diagnostics.DeviceDiagnostics
+import com.raizey.mantiq.ime.KeyboardPreferences
 import com.raizey.mantiq.ime.MantiqImeService
 
 class MainActivity : Activity() {
@@ -67,6 +69,19 @@ class MainActivity : Activity() {
         statusView = findViewById(R.id.keyboard_status)
         detailView = findViewById(R.id.keyboard_status_detail)
         testField = findViewById(R.id.keyboard_test_field)
+
+        findViewById<Switch>(R.id.haptic_switch).apply {
+            isChecked = KeyboardPreferences.hapticsEnabled(this@MainActivity)
+            setOnCheckedChangeListener { _, enabled ->
+                KeyboardPreferences.setHapticsEnabled(this@MainActivity, enabled)
+            }
+        }
+        findViewById<Switch>(R.id.sound_switch).apply {
+            isChecked = KeyboardPreferences.soundEnabled(this@MainActivity)
+            setOnCheckedChangeListener { _, enabled ->
+                KeyboardPreferences.setSoundEnabled(this@MainActivity, enabled)
+            }
+        }
 
         findViewById<Button>(R.id.enable_keyboard_button).setOnClickListener {
             openInputMethodSettings()

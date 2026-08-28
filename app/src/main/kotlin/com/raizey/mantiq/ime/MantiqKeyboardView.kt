@@ -2,10 +2,17 @@ package com.raizey.mantiq.ime
 
 import android.content.Context
 import android.graphics.Color
+import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.StateListDrawable
+import android.media.AudioManager
+import android.os.Handler
+import android.os.Looper
 import android.view.Gravity
+import android.view.HapticFeedbackConstants
+import android.view.MotionEvent
+import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 
@@ -18,23 +25,49 @@ class MantiqKeyboardView(
         fun onSpace()
         fun onBackspace()
         fun onEnter()
+        fun onQuickSnippet(trigger: String)
         fun onAiRequested()
     }
 
-    private var arabic = true
+    private enum class Mode { ARABIC, ENGLISH, SYMBOLS }
+
+    private data class Key(
+        val label: String,
+        val value: String = label,
+        val weight: Float = 1f,
+        val role: KeyRole = KeyRole.LETTER,
+    )
+
+    private enum class KeyRole { LETTER, ACTION, ACCENT, SPACE }
+
+    private var mode = Mode.ARABIC
+    private var previousLetterMode = Mode.ARABIC
+    private var shifted = false
+    private var capsLock = false
+    private val repeatHandler = Handler(Looper.getMainLooper())
+    private var repeatAction: Runnable? = null
 
     init {
         orientation = VERTICAL
-        setPadding(4.dp, 6.dp, 4.dp, 8.dp)
+        layoutDirection = LAYOUT_DIRECTION_LTR
+        setPadding(4.dp, 4.dp, 4.dp, 6.dp)
         setBackgroundColor(BACKGROUND)
         render()
+    }
+
+    override fun onDetachedFromWindow() {
+        stopRepeating()
+        super.onDetachedFromWindow()
     }
 
     private fun render() {
         removeAllViews()
         addToolbar()
-        val rows = if (arabic) ARABIC_ROWS else ENGLISH_ROWS
-        rows.forEach { addKeyRow(it, if (arabic) LAYOUT_DIRECTION_RTL else LAYOUT_DIRECTION_LTR) }
+        when (mode) {
+            Mode.ARABIC -> addArabicLayout()
+            Mode.ENGLISH -> addEnglishLayout()
+            Mode.SYMBOLS -> addSymbolLayout()
+        }
         addBottomRow()
     }
 
@@ -43,27 +76,93 @@ class MantiqKeyboardView(
             orientation = HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             layoutDirection = LAYOUT_DIRECTION_LTR
+            setPadding(4.dp, 0, 4.dp, 0)
         }
         row.addView(TextView(context).apply {
             text = "Mantiq"
-            textSize = 16f
+            textSize = 15f
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             setTextColor(ACCENT)
-            setPadding(10.dp, 0, 0, 0)
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(8.dp, 0, 4.dp, 0)
         }, LayoutParams(0, 40.dp, 1f))
-        row.addView(keyButton("AI") { listener.onAiRequested() }, LayoutParams(64.dp, 40.dp))
+        row.addView(toolbarChip("الوقت") { listener.onQuickSnippet("!الوقت") })
+        row.addView(toolbarChip("التاريخ") { listener.onQuickSnippet("!تاريخ") })
+        row.addView(toolbarChip("AI", accent = true) { listener.onAiRequested() })
         addView(row, LayoutParams(LayoutParams.MATCH_PARENT, 44.dp))
     }
 
-    private fun addKeyRow(keys: List<String>, direction: Int) {
+    private fun addArabicLayout() {
+        // Explicit left-to-right screen order avoids vendor-specific RTL row reversal.
+        addKeyRow(ARABIC_ROW_1)
+        addKeyRow(ARABIC_ROW_2, sideInset = 0.42f)
+        addKeyRow(ARABIC_ROW_3, sideInset = 0.78f, includeBackspace = true)
+    }
+
+    private fun addEnglishLayout() {
+        val transform: (String) -> String = { value ->
+            if (shifted || capsLock) value.uppercase() else value
+        }
+        addKeyRow(ENGLISH_ROW_1.map { Key(transform(it.label), transform(it.value)) })
+        addKeyRow(ENGLISH_ROW_2.map { Key(transform(it.label), transform(it.value)) }, sideInset = 0.5f)
+
+        val thirdRow = buildList {
+            add(Key(if (capsLock) "⇪" else "⇧", weight = 1.35f, role = if (shifted || capsLock) KeyRole.ACCENT else KeyRole.ACTION))
+            addAll(ENGLISH_ROW_3.map { Key(transform(it.label), transform(it.value)) })
+        }
+        addKeyRow(thirdRow, sideInset = 0.06f, includeBackspace = true, shiftKey = true)
+    }
+
+    private fun addSymbolLayout() {
+        addKeyRow(SYMBOL_ROW_1)
+        addKeyRow(SYMBOL_ROW_2, sideInset = 0.18f)
+        addKeyRow(SYMBOL_ROW_3, sideInset = 0.62f, includeBackspace = true)
+    }
+
+    private fun addKeyRow(
+        keys: List<Key>,
+        sideInset: Float = 0f,
+        includeBackspace: Boolean = false,
+        shiftKey: Boolean = false,
+    ) {
         val row = LinearLayout(context).apply {
             orientation = HORIZONTAL
             gravity = Gravity.CENTER
-            layoutDirection = direction
+            layoutDirection = LAYOUT_DIRECTION_LTR
         }
-        keys.forEach { key ->
-            row.addView(keyButton(key) { listener.onText(key) }, weightedKey())
+        if (sideInset > 0f) row.addView(View(context), weightedLayout(sideInset, margins = false))
+
+        keys.forEachIndexed { index, key ->
+            val keyView = keyView(key) {
+                if (shiftKey && index == 0) {
+                    toggleShift()
+                } else {
+                    listener.onText(key.value)
+                    if (mode == Mode.ENGLISH && shifted && !capsLock) {
+                        shifted = false
+                        render()
+                    }
+                }
+            }
+            if (shiftKey && index == 0) {
+                keyView.setOnLongClickListener {
+                    feedback(it)
+                    capsLock = !capsLock
+                    shifted = capsLock
+                    render()
+                    true
+                }
+            }
+            row.addView(keyView, weightedLayout(key.weight))
         }
-        addView(row, LayoutParams(LayoutParams.MATCH_PARENT, 50.dp))
+        if (includeBackspace) {
+            row.addView(
+                repeatingKey(Key("⌫", weight = 1.4f, role = KeyRole.ACTION)) { listener.onBackspace() },
+                weightedLayout(1.4f),
+            )
+        }
+        if (sideInset > 0f) row.addView(View(context), weightedLayout(sideInset, margins = false))
+        addView(row, LayoutParams(LayoutParams.MATCH_PARENT, 52.dp))
     }
 
     private fun addBottomRow() {
@@ -72,60 +171,176 @@ class MantiqKeyboardView(
             gravity = Gravity.CENTER
             layoutDirection = LAYOUT_DIRECTION_LTR
         }
-        row.addView(keyButton("🌐") {
-            arabic = !arabic
+
+        val modeLabel = if (mode == Mode.SYMBOLS) "أبج" else "123"
+        row.addView(keyView(Key(modeLabel, weight = 1.25f, role = KeyRole.ACTION)) {
+            if (mode == Mode.SYMBOLS) {
+                mode = previousLetterMode
+            } else {
+                previousLetterMode = mode
+                mode = Mode.SYMBOLS
+            }
+            shifted = false
+            capsLock = false
             render()
-        }, weightedKey(1.1f))
-        row.addView(keyButton(if (arabic) "،" else ",") { listener.onText(if (arabic) "،" else ",") }, weightedKey())
-        row.addView(keyButton(" ") { listener.onSpace() }, weightedKey(3.5f))
-        row.addView(keyButton(".") { listener.onText(".") }, weightedKey())
-        row.addView(keyButton("⌫") { listener.onBackspace() }, weightedKey(1.1f))
-        row.addView(keyButton("⏎") { listener.onEnter() }, weightedKey(1.1f))
-        addView(row, LayoutParams(LayoutParams.MATCH_PARENT, 54.dp))
-    }
+        }, weightedLayout(1.25f))
 
-    private fun keyButton(label: String, action: () -> Unit) = Button(context).apply {
-        text = label
-        textSize = if (label == "AI") 14f else 18f
-        isAllCaps = false
-        setTextColor(Color.WHITE)
-        gravity = Gravity.CENTER
-        minWidth = 0
-        minimumWidth = 0
-        minHeight = 0
-        minimumHeight = 0
-        setPadding(0, 0, 0, 0)
-        background = GradientDrawable().apply {
-            setColor(KEY_BACKGROUND)
-            cornerRadius = 10.dp.toFloat()
-            setStroke(1.dp, KEY_BORDER)
+        val languageLabel = when (mode) {
+            Mode.ARABIC -> "EN"
+            Mode.ENGLISH -> "ع"
+            Mode.SYMBOLS -> if (previousLetterMode == Mode.ARABIC) "EN" else "ع"
         }
-        setOnClickListener { action() }
+        row.addView(keyView(Key(languageLabel, weight = 1.15f, role = KeyRole.ACTION)) {
+            val next = when (if (mode == Mode.SYMBOLS) previousLetterMode else mode) {
+                Mode.ARABIC -> Mode.ENGLISH
+                else -> Mode.ARABIC
+            }
+            previousLetterMode = next
+            mode = next
+            shifted = false
+            capsLock = false
+            render()
+        }, weightedLayout(1.15f))
+
+        val comma = if (mode == Mode.ARABIC) "،" else ","
+        row.addView(keyView(Key(comma, role = KeyRole.ACTION)) { listener.onText(comma) }, weightedLayout())
+        row.addView(keyView(Key("مسافة", weight = 4f, role = KeyRole.SPACE)) { listener.onSpace() }, weightedLayout(4f))
+        row.addView(keyView(Key(".", role = KeyRole.ACTION)) { listener.onText(".") }, weightedLayout())
+        row.addView(keyView(Key("↵", weight = 1.3f, role = KeyRole.ACCENT)) { listener.onEnter() }, weightedLayout(1.3f))
+        addView(row, LayoutParams(LayoutParams.MATCH_PARENT, 56.dp))
     }
 
-    private fun weightedKey(weight: Float = 1f) = LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, weight).apply {
-        setMargins(2.dp, 2.dp, 2.dp, 2.dp)
+    private fun toggleShift() {
+        shifted = !shifted
+        if (!shifted) capsLock = false
+        render()
     }
+
+    private fun toolbarChip(label: String, accent: Boolean = false, action: () -> Unit): TextView =
+        keyView(
+            Key(label, role = if (accent) KeyRole.ACCENT else KeyRole.ACTION),
+            action,
+            textSize = 13f,
+        ).apply {
+            layoutParams = LayoutParams(if (label == "AI") 54.dp else 66.dp, 38.dp).apply {
+                setMargins(2.dp, 2.dp, 2.dp, 2.dp)
+            }
+        }
+
+    private fun keyView(key: Key, action: () -> Unit, textSize: Float = 18f) = TextView(context).apply {
+        text = key.label
+        this.textSize = if (key.role == KeyRole.SPACE) 13f else textSize
+        setTextColor(if (key.role == KeyRole.ACCENT) ACCENT else Color.WHITE)
+        gravity = Gravity.CENTER
+        isClickable = true
+        isFocusable = true
+        isSoundEffectsEnabled = false
+        contentDescription = key.label
+        background = keyBackground(key.role)
+        setOnClickListener {
+            feedback(it)
+            action()
+        }
+    }
+
+    private fun repeatingKey(key: Key, action: () -> Unit): TextView = keyView(key, action).apply {
+        setOnTouchListener { view, event ->
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    feedback(view)
+                    action()
+                    startRepeating(action)
+                    true
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    stopRepeating()
+                    view.performClick()
+                    true
+                }
+                else -> true
+            }
+        }
+        setOnClickListener { }
+    }
+
+    private fun startRepeating(action: () -> Unit) {
+        stopRepeating()
+        val repeat = object : Runnable {
+            override fun run() {
+                action()
+                repeatHandler.postDelayed(this, REPEAT_INTERVAL_MS)
+            }
+        }
+        repeatAction = repeat
+        repeatHandler.postDelayed(repeat, REPEAT_START_DELAY_MS)
+    }
+
+    private fun stopRepeating() {
+        repeatAction?.let(repeatHandler::removeCallbacks)
+        repeatAction = null
+    }
+
+    private fun feedback(view: View) {
+        if (KeyboardPreferences.hapticsEnabled(context)) {
+            view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+        }
+        if (KeyboardPreferences.soundEnabled(context)) {
+            (context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager)
+                ?.playSoundEffect(AudioManager.FX_KEY_CLICK)
+        }
+    }
+
+    private fun keyBackground(role: KeyRole): StateListDrawable {
+        val normal = when (role) {
+            KeyRole.LETTER, KeyRole.SPACE -> KEY_BACKGROUND
+            KeyRole.ACTION -> ACTION_BACKGROUND
+            KeyRole.ACCENT -> ACCENT_BACKGROUND
+        }
+        return StateListDrawable().apply {
+            addState(intArrayOf(android.R.attr.state_pressed), rounded(PRESSED_BACKGROUND, ACCENT_BORDER))
+            addState(intArrayOf(android.R.attr.state_focused), rounded(normal, ACCENT_BORDER))
+            addState(intArrayOf(), rounded(normal, KEY_BORDER))
+        }
+    }
+
+    private fun rounded(color: Int, stroke: Int) = GradientDrawable().apply {
+        setColor(color)
+        cornerRadius = 9.dp.toFloat()
+        setStroke(1.dp, stroke)
+    }
+
+    private fun weightedLayout(weight: Float = 1f, margins: Boolean = true) =
+        LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, weight).apply {
+            if (margins) setMargins(2.dp, 2.dp, 2.dp, 2.dp)
+        }
 
     private val Int.dp: Int
         get() = (this * resources.displayMetrics.density).toInt()
 
     private companion object {
+        const val REPEAT_START_DELAY_MS = 420L
+        const val REPEAT_INTERVAL_MS = 55L
+
         val BACKGROUND = Color.rgb(10, 14, 19)
-        val KEY_BACKGROUND = Color.rgb(27, 35, 45)
+        val KEY_BACKGROUND = Color.rgb(30, 39, 49)
+        val ACTION_BACKGROUND = Color.rgb(22, 30, 39)
+        val ACCENT_BACKGROUND = Color.rgb(20, 55, 48)
+        val PRESSED_BACKGROUND = Color.rgb(48, 66, 78)
         val KEY_BORDER = Color.rgb(55, 70, 82)
+        val ACCENT_BORDER = Color.rgb(91, 224, 179)
         val ACCENT = Color.rgb(91, 224, 179)
 
-        val ARABIC_ROWS = listOf(
-            listOf("ض", "ص", "ث", "ق", "ف", "غ", "ع", "ه", "خ", "ح", "ج", "د"),
-            listOf("ش", "س", "ي", "ب", "ل", "ا", "ت", "ن", "م", "ك", "ط"),
-            listOf("ئ", "ء", "ؤ", "ر", "لا", "ى", "ة", "و", "ز", "ظ"),
-        )
-        val ENGLISH_ROWS = listOf(
-            listOf("q", "w", "e", "r", "t", "y", "u", "i", "o", "p"),
-            listOf("a", "s", "d", "f", "g", "h", "j", "k", "l"),
-            listOf("z", "x", "c", "v", "b", "n", "m"),
-        )
+        // Exact visual order from the left edge to the right edge.
+        val ARABIC_ROW_1 = KeyboardLayouts.ARABIC_ROWS[0].map { Key(it) }
+        val ARABIC_ROW_2 = KeyboardLayouts.ARABIC_ROWS[1].map { Key(it) }
+        val ARABIC_ROW_3 = KeyboardLayouts.ARABIC_ROWS[2].map { Key(it) }
+
+        val ENGLISH_ROW_1 = KeyboardLayouts.ENGLISH_ROWS[0].map { Key(it) }
+        val ENGLISH_ROW_2 = KeyboardLayouts.ENGLISH_ROWS[1].map { Key(it) }
+        val ENGLISH_ROW_3 = KeyboardLayouts.ENGLISH_ROWS[2].map { Key(it) }
+
+        val SYMBOL_ROW_1 = "1234567890".map { Key(it.toString()) }
+        val SYMBOL_ROW_2 = listOf("@", "#", "$", "_", "&", "-", "+", "(", ")", "/").map { Key(it) }
+        val SYMBOL_ROW_3 = listOf("*", "\"", "'", ";", ":", "!", "؟", "?").map { Key(it) }
     }
 }
-

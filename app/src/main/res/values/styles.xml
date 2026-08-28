@@ -1,11 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.Mantiq" parent="android:style/Theme.Material.Light.NoActionBar">
+    <style name="Theme.Mantiq" parent="android:style/Theme.Material.NoActionBar">
         <item name="android:fontFamily">sans</item>
-        <item name="android:colorAccent">#5BE0B3</item>
-        <item name="android:navigationBarColor">#0A0E13</item>
-        <item name="android:statusBarColor">#0A0E13</item>
+        <item name="android:colorAccent">@color/mantiq_accent</item>
+        <item name="android:navigationBarColor">@color/mantiq_background</item>
+        <item name="android:statusBarColor">@color/mantiq_background</item>
         <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+
+    <style name="Widget.Mantiq.Button.Base" parent="android:style/Widget.Material.Button">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">52dp</item>
+        <item name="android:minHeight">52dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:stateListAnimator">@null</item>
+    </style>
+
+    <style name="Widget.Mantiq.Button.Primary" parent="Widget.Mantiq.Button.Base">
+        <item name="android:backgroundTint">@color/mantiq_accent</item>
+        <item name="android:textColor">@color/mantiq_button_text</item>
+    </style>
+
+    <style name="Widget.Mantiq.Button.Secondary" parent="Widget.Mantiq.Button.Base">
+        <item name="android:backgroundTint">@color/mantiq_surface_high</item>
+        <item name="android:textColor">@color/mantiq_text</item>
+    </style>
+
+    <style name="Widget.Mantiq.Button.Ghost" parent="Widget.Mantiq.Button.Base">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_gravity">center_horizontal</item>
+        <item name="android:backgroundTint">@color/mantiq_surface_high</item>
+        <item name="android:textColor">@color/mantiq_text_secondary</item>
+        <item name="android:textStyle">normal</item>
+    </style>
+
+    <style name="Widget.Mantiq.SectionTitle" parent="android:style/Widget.TextView">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/mantiq_text</item>
+        <item name="android:textSize">17sp</item>
+        <item name="android:textStyle">bold</item>
     </style>
 </resources>
-
