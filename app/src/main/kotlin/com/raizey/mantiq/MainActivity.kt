@@ -26,6 +26,7 @@ class MainActivity : Activity() {
     private lateinit var detailView: TextView
     private lateinit var testField: EditText
     private var uiReady = false
+    private var keyboardOpenRequested = false
 
     private val inputManager
         get() = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
@@ -55,6 +56,11 @@ class MainActivity : Activity() {
     override fun onResume() {
         super.onResume()
         if (uiReady) window.decorView.post { updateKeyboardStatus() }
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus && keyboardOpenRequested && uiReady) scheduleKeyboardOpenAttempts()
     }
 
     private fun bindViews() {
@@ -149,10 +155,22 @@ class MainActivity : Activity() {
         }
 
         testField.requestFocus()
+        keyboardOpenRequested = true
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
-        testField.postDelayed({
-            inputManager.showSoftInput(testField, InputMethodManager.SHOW_IMPLICIT)
-        }, KEYBOARD_OPEN_DELAY_MS)
+        scheduleKeyboardOpenAttempts()
+    }
+
+    private fun scheduleKeyboardOpenAttempts() {
+        KEYBOARD_OPEN_RETRY_DELAYS_MS.forEach { delay ->
+            testField.postDelayed({
+                if (!keyboardOpenRequested || isFinishing) return@postDelayed
+                testField.requestFocus()
+                inputManager.restartInput(testField)
+                if (inputManager.showSoftInput(testField, InputMethodManager.SHOW_IMPLICIT)) {
+                    keyboardOpenRequested = false
+                }
+            }, delay)
+        }
     }
 
     private fun copyDiagnostics() {
@@ -211,8 +229,8 @@ class MainActivity : Activity() {
     data class KeyboardState(val enabled: Boolean, val selected: Boolean)
 
     private companion object {
-        const val KEYBOARD_OPEN_DELAY_MS = 200L
         const val AUTOMATED_TEST_DELAY_MS = 600L
         const val EXTRA_OPEN_TEST_KEYBOARD = "open_test_keyboard"
+        val KEYBOARD_OPEN_RETRY_DELAYS_MS = longArrayOf(100L, 400L, 900L)
     }
 }

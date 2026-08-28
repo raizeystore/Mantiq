@@ -98,6 +98,7 @@
             android:hint="@string/test_keyboard"
             android:importantForAutofill="noExcludeDescendants"
             android:inputType="textMultiLine|textCapSentences"
+            android:focusableInTouchMode="true"
             android:minHeight="88dp"
             android:padding="14dp"
             android:textColor="@color/mantiq_text"

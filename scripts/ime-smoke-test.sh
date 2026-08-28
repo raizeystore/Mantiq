@@ -13,7 +13,18 @@ if [[ ! -f "${apk_path}" ]]; then
 fi
 
 adb install -r "${apk_path}"
-adb logcat -c
+adb logcat -c || true
+
+collect_diagnostics() {
+  adb exec-out screencap -p > /tmp/mantiq-smoke.png 2>/dev/null || true
+  adb logcat -d > /tmp/mantiq-logcat.txt 2>/dev/null || true
+  adb shell dumpsys input_method > /tmp/mantiq-input-method.txt 2>/dev/null || true
+  adb shell dumpsys package "${package_name}" > /tmp/mantiq-package.txt 2>/dev/null || true
+  adb shell dumpsys window > /tmp/mantiq-window-state.txt 2>/dev/null || true
+  adb shell uiautomator dump /sdcard/mantiq-window.xml >/dev/null 2>&1 || true
+  adb pull /sdcard/mantiq-window.xml /tmp/mantiq-window.xml >/dev/null 2>&1 || true
+}
+trap collect_diagnostics EXIT
 
 launch_output="$(adb shell am start -W -n "${activity_component}")"
 echo "${launch_output}"
@@ -41,7 +52,6 @@ if [[ "${selected_ime}" != "${ime_component}" && "${selected_ime}" != "${ime_com
   exit 1
 fi
 
-adb shell am force-stop "${package_name}"
 launch_output="$(adb shell am start -W -n "${activity_component}" --ez open_test_keyboard true)"
 echo "${launch_output}"
 grep -q "Status: ok" <<<"${launch_output}"
@@ -59,8 +69,7 @@ adb shell uiautomator dump /sdcard/mantiq-window.xml >/dev/null
 adb pull /sdcard/mantiq-window.xml /tmp/mantiq-window.xml >/dev/null
 grep -q "Mantiq" /tmp/mantiq-window.xml
 
-adb exec-out screencap -p > /tmp/mantiq-smoke.png
-adb logcat -d > /tmp/mantiq-logcat.txt
+collect_diagnostics
 if grep -A 15 -B 2 "FATAL EXCEPTION" /tmp/mantiq-logcat.txt | grep -q "${package_name}"; then
   echo "Mantiq crashed during the smoke test" >&2
   grep -A 30 -B 2 "FATAL EXCEPTION" /tmp/mantiq-logcat.txt >&2

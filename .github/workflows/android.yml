@@ -97,5 +97,7 @@ jobs:
             /tmp/mantiq-logcat.txt
             /tmp/mantiq-input-method.txt
             /tmp/mantiq-package.txt
+            /tmp/mantiq-window-state.txt
+            /tmp/mantiq-window.xml
           if-no-files-found: ignore
           retention-days: 7
