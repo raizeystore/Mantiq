@@ -6,6 +6,8 @@ Mantiq is an Android-first intelligent keyboard built in Kotlin. The project is 
 
 - Native `InputMethodService` keyboard.
 - Arabic and English layouts.
+- Guided activation screen with live enabled/selected status and a test field.
+- Adaptive Mantiq application icon.
 - Exact in-memory snippet lookup.
 - Dynamic time and date templates.
 - Fractional offsets such as `{{time+1.5h}}` and bare `{{time+1.5}}`.

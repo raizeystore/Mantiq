@@ -6,5 +6,11 @@
     <string name="welcome_body">لوحة مفاتيح عربية وإنجليزية مع اختصارات ذكية وحسابات زمنية دقيقة.</string>
     <string name="enable_keyboard">تفعيل Mantiq من إعدادات لوحة المفاتيح</string>
     <string name="choose_keyboard">اختيار Mantiq كلوحة حالية</string>
+    <string name="test_keyboard">اضغط هنا لتجربة لوحة Mantiq…</string>
+    <string name="open_keyboard">فتح اللوحة للتجربة</string>
+    <string name="status_disabled">الحالة: اللوحة غير مفعّلة</string>
+    <string name="status_enabled">الحالة: مفعّلة، لكن ليست اللوحة الحالية</string>
+    <string name="status_selected">الحالة: Mantiq مفعّلة ومختارة ✓</string>
+    <string name="subtype_arabic">Mantiq العربية</string>
+    <string name="subtype_english">Mantiq English</string>
 </resources>
-
