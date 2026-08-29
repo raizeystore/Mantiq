@@ -31,6 +31,10 @@ echo "${launch_output}"
 grep -q "Status: ok" <<<"${launch_output}"
 sleep 2
 
+# Preserve a screenshot of the app before the keyboard opens so the redesigned
+# navigation and home screen are also covered by the CI artifacts.
+adb exec-out screencap -p > /tmp/mantiq-app.png 2>/dev/null || true
+
 if ! adb shell pidof "${package_name}" >/dev/null; then
   echo "Mantiq process did not remain alive after launch" >&2
   exit 1

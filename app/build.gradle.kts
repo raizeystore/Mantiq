@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "com.raizey.mantiq"
-    compileSdk = 37
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.raizey.mantiq"
@@ -37,7 +37,10 @@ android {
 }
 
 dependencies {
-    val composeBom = platform("androidx.compose:compose-bom:2026.08.00")
+    // Compose 1.10.x is the newest stable line that still supports compileSdk 36.
+    // Newer Compose releases require the Android 37 SDK, which is not yet
+    // available on every CI image we support.
+    val composeBom = platform("androidx.compose:compose-bom:2026.03.01")
     implementation(composeBom)
     androidTestImplementation(composeBom)
 
