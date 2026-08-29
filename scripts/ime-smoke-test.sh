@@ -64,7 +64,9 @@ for _ in 1 2 3 4 5; do
   if [[ -n "${test_field_node}" ]]; then
     break
   fi
-  adb shell input swipe 160 540 160 150 300
+  # Start above the persistent bottom navigation. Gestures beginning inside
+  # the navigation bar are consumed on compact Android 16 emulator screens.
+  adb shell input swipe 160 470 160 130 300
   sleep 1
 done
 
