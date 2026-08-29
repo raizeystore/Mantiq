@@ -1,14 +1,14 @@
 package com.raizey.mantiq.ime
 
 /**
- * Keyboard rows in exact visual order from the left edge to the right edge.
- * Arabic typing order is therefore obtained by reading each row right-to-left.
+ * Keyboard rows in exact visual order from the left edge to the right edge,
+ * matching the familiar Arabic PC/Gboard mapping.
  */
 object KeyboardLayouts {
     val ARABIC_ROWS = listOf(
-        listOf("د", "ج", "ح", "خ", "ه", "ع", "غ", "ف", "ق", "ث", "ص", "ض"),
-        listOf("ط", "ك", "م", "ن", "ت", "ا", "ل", "ب", "ي", "س", "ش"),
-        listOf("ظ", "ز", "و", "ة", "ى", "لا", "ر", "ؤ", "ء", "ئ"),
+        listOf("ض", "ص", "ث", "ق", "ف", "غ", "ع", "ه", "خ", "ح", "ج", "د"),
+        listOf("ش", "س", "ي", "ب", "ل", "ا", "ت", "ن", "م", "ك", "ط"),
+        listOf("ئ", "ء", "ؤ", "ر", "لا", "ى", "ة", "و", "ز", "ظ"),
     )
 
     val ENGLISH_ROWS = listOf(

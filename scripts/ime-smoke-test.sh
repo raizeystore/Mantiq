@@ -56,7 +56,7 @@ test_field_node=""
 for _ in 1 2 3 4 5; do
   adb shell uiautomator dump /sdcard/mantiq-window.xml >/dev/null
   adb pull /sdcard/mantiq-window.xml /tmp/mantiq-window.xml >/dev/null
-  test_field_node="$(grep -o '<node[^>]*resource-id="com.raizey.mantiq:id/keyboard_test_field"[^>]*>' /tmp/mantiq-window.xml | head -1 || true)"
+  test_field_node="$(grep -o '<node[^>]*resource-id="[^"]*keyboard_test_field"[^>]*>' /tmp/mantiq-window.xml | head -1 || true)"
   if [[ -n "${test_field_node}" ]]; then
     break
   fi

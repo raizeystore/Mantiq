@@ -9,18 +9,18 @@ import android.widget.Toast
 import com.raizey.mantiq.core.Snippet
 import com.raizey.mantiq.core.SnippetEngine
 import com.raizey.mantiq.core.TemplateContext
+import com.raizey.mantiq.data.SecureSnippetRepository
 import com.raizey.mantiq.diagnostics.CrashStore
 import java.time.Clock
 import java.time.ZoneId
 import java.util.Locale
 
 class MantiqImeService : InputMethodService(), MantiqKeyboardView.Listener {
-    private val snippets: SnippetEngine? by lazy(LazyThreadSafetyMode.NONE) {
+    private var snippets: SnippetEngine? = null
+    private val quickSnippets: SnippetEngine? by lazy(LazyThreadSafetyMode.NONE) {
         runCatching {
             SnippetEngine(
                 listOf(
-                    Snippet("!بعد1.5", "{{time+1.5h}}"),
-                    Snippet("!بعد4", "{{time+4h}}"),
                     Snippet("!تاريخ", "{{date}}"),
                     Snippet("!الوقت", "{{time}}"),
                 ),
@@ -57,6 +57,11 @@ class MantiqImeService : InputMethodService(), MantiqKeyboardView.Listener {
     }
 
     override fun onEvaluateFullscreenMode(): Boolean = false
+
+    override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
+        super.onStartInput(attribute, restarting)
+        refreshSnippets(attribute?.packageName)
+    }
 
     override fun onText(text: String) {
         runCatching { currentInputConnection?.commitText(text, 1) }
@@ -105,13 +110,25 @@ class MantiqImeService : InputMethodService(), MantiqKeyboardView.Listener {
         val sensitive = SensitiveFieldDetector.isSensitive(currentInputEditorInfo?.inputType ?: 0)
         if (sensitive) return
 
-        val replacement = snippets?.expandTrigger(trigger, templateContext) ?: return
+        val replacement = quickSnippets?.expandTrigger(trigger, templateContext) ?: return
         runCatching { connection.commitText(replacement, 1) }
             .onFailure { CrashStore.record(this, "MantiqImeService.onQuickSnippet", it) }
     }
 
     override fun onAiRequested() {
         Toast.makeText(this, "مساعد Mantiq AI سيُضاف بعد اكتمال المحرك الأساسي", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun refreshSnippets(packageName: String?) {
+        snippets = runCatching {
+            val allowed = SecureSnippetRepository(this)
+                .list()
+                .filter { it.isAllowedIn(packageName) }
+                .map { it.asCoreSnippet() }
+            SnippetEngine(allowed)
+        }.onFailure {
+            CrashStore.record(this, "MantiqImeService.refreshSnippets", it)
+        }.getOrNull()
     }
 
     private companion object {

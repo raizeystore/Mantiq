@@ -5,18 +5,18 @@ import org.junit.Test
 
 class KeyboardLayoutsTest {
     @Test
-    fun arabicRowsMatchTheStandardTypingOrderFromRightToLeft() {
+    fun arabicRowsMatchTheStandardVisualOrderFromLeftToRight() {
         assertEquals(
             listOf("ض", "ص", "ث", "ق", "ف", "غ", "ع", "ه", "خ", "ح", "ج", "د"),
-            KeyboardLayouts.ARABIC_ROWS[0].reversed(),
+            KeyboardLayouts.ARABIC_ROWS[0],
         )
         assertEquals(
             listOf("ش", "س", "ي", "ب", "ل", "ا", "ت", "ن", "م", "ك", "ط"),
-            KeyboardLayouts.ARABIC_ROWS[1].reversed(),
+            KeyboardLayouts.ARABIC_ROWS[1],
         )
         assertEquals(
             listOf("ئ", "ء", "ؤ", "ر", "لا", "ى", "ة", "و", "ز", "ظ"),
-            KeyboardLayouts.ARABIC_ROWS[2].reversed(),
+            KeyboardLayouts.ARABIC_ROWS[2],
         )
     }
 

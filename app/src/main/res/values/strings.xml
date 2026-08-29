@@ -4,7 +4,7 @@
     <string name="keyboard_name">Mantiq Keyboard</string>
     <string name="welcome_title">Mantiq</string>
     <string name="welcome_body">اكتب بالعربية والإنجليزية، واستخدم الاختصارات الزمنية مباشرة من لوحة المفاتيح.</string>
-    <string name="version_label">الإصدار 0.2.0 • تجريبي</string>
+    <string name="version_label">الإصدار 0.3.0 • تجريبي</string>
     <string name="setup_title">إعداد اللوحة</string>
     <string name="enable_keyboard">الخطوة 1 • تفعيل Mantiq</string>
     <string name="choose_keyboard">الخطوة 2 • اختيار Mantiq</string>

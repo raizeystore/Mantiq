@@ -2,13 +2,17 @@
 
 Mantiq is an Android-first intelligent keyboard built in Kotlin. The project is local-first: typing and snippet expansion work without an account or network connection.
 
-## Current MVP — 0.2.0
+## Current MVP — 0.3.0
 
 - Native `InputMethodService` keyboard.
 - Deterministic standard Arabic layout and English QWERTY layout.
 - Numbers and symbols mode, English Shift/Caps Lock, and repeat backspace.
 - Direct time and date actions in the keyboard toolbar.
 - User-controlled key haptics and sound stored locally.
+- Jetpack Compose Material 3 application with Home, Snippets, AI, Themes, and Settings destinations.
+- User-created snippets encrypted with an AES-GCM key stored in Android Keystore.
+- Per-snippet application allowlists: an empty selection means the snippet runs nowhere.
+- Four keyboard color themes with live previews in the app.
 - Guided activation screen with live enabled/selected status and a test field.
 - Adaptive Mantiq application icon.
 - Safe-mode launcher UI and local crash diagnostics.
@@ -22,16 +26,16 @@ Mantiq is an Android-first intelligent keyboard built in Kotlin. The project is 
 
 The Android app now uses explicit visual row ordering instead of relying on vendor-specific RTL reversal. This keeps the Arabic letters in the same positions across Android and manufacturer skins.
 
-### Built-in development snippets
+### Template variables for user snippets
 
-| Trigger | Expansion |
+| Template | Expansion |
 |---|---|
-| `!بعد1.5` | Current Sudan time plus 1 hour 30 minutes |
-| `!بعد4` | Current Sudan time plus 4 hours |
-| `!تاريخ` | Current date |
-| `!الوقت` | Current Sudan time |
+| `{{time+1.5h}}` | Current Sudan time plus 1 hour 30 minutes |
+| `{{time+4h}}` | Current Sudan time plus 4 hours |
+| `{{date}}` | Current date |
+| `{{time}}` | Current Sudan time |
 
-These defaults are temporary. User-managed encrypted snippets will replace them in the next storage milestone.
+Time and date are built-in toolbar actions. All text-expansion snippets are created and managed by the user in the app.
 
 ## Build
 

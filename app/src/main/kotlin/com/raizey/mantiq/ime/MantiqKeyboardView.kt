@@ -44,6 +44,7 @@ class MantiqKeyboardView(
     private var previousLetterMode = Mode.ARABIC
     private var shifted = false
     private var capsLock = false
+    private val palette = KeyboardAppearancePreferences.palette(context)
     private val repeatHandler = Handler(Looper.getMainLooper())
     private var repeatAction: Runnable? = null
 
@@ -51,7 +52,7 @@ class MantiqKeyboardView(
         orientation = VERTICAL
         layoutDirection = LAYOUT_DIRECTION_LTR
         setPadding(4.dp, 4.dp, 4.dp, 6.dp)
-        setBackgroundColor(BACKGROUND)
+        setBackgroundColor(palette.background)
         render()
     }
 
@@ -82,7 +83,7 @@ class MantiqKeyboardView(
             text = "Mantiq"
             textSize = 15f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
-            setTextColor(ACCENT)
+            setTextColor(palette.accent)
             gravity = Gravity.CENTER_VERTICAL
             setPadding(8.dp, 0, 4.dp, 0)
         }, LayoutParams(0, 40.dp, 1f))
@@ -230,7 +231,7 @@ class MantiqKeyboardView(
     private fun keyView(key: Key, textSize: Float = 18f, action: () -> Unit) = TextView(context).apply {
         text = key.label
         this.textSize = if (key.role == KeyRole.SPACE) 13f else textSize
-        setTextColor(if (key.role == KeyRole.ACCENT) ACCENT else Color.WHITE)
+        setTextColor(if (key.role == KeyRole.ACCENT) palette.accent else Color.WHITE)
         gravity = Gravity.CENTER
         isClickable = true
         isFocusable = true
@@ -292,14 +293,14 @@ class MantiqKeyboardView(
 
     private fun keyBackground(role: KeyRole): StateListDrawable {
         val normal = when (role) {
-            KeyRole.LETTER, KeyRole.SPACE -> KEY_BACKGROUND
-            KeyRole.ACTION -> ACTION_BACKGROUND
-            KeyRole.ACCENT -> ACCENT_BACKGROUND
+            KeyRole.LETTER, KeyRole.SPACE -> palette.key
+            KeyRole.ACTION -> palette.actionKey
+            KeyRole.ACCENT -> palette.accentKey
         }
         return StateListDrawable().apply {
-            addState(intArrayOf(android.R.attr.state_pressed), rounded(PRESSED_BACKGROUND, ACCENT_BORDER))
-            addState(intArrayOf(android.R.attr.state_focused), rounded(normal, ACCENT_BORDER))
-            addState(intArrayOf(), rounded(normal, KEY_BORDER))
+            addState(intArrayOf(android.R.attr.state_pressed), rounded(palette.pressedKey, palette.accent))
+            addState(intArrayOf(android.R.attr.state_focused), rounded(normal, palette.accent))
+            addState(intArrayOf(), rounded(normal, palette.border))
         }
     }
 
@@ -320,15 +321,6 @@ class MantiqKeyboardView(
     private companion object {
         const val REPEAT_START_DELAY_MS = 420L
         const val REPEAT_INTERVAL_MS = 55L
-
-        val BACKGROUND = Color.rgb(10, 14, 19)
-        val KEY_BACKGROUND = Color.rgb(30, 39, 49)
-        val ACTION_BACKGROUND = Color.rgb(22, 30, 39)
-        val ACCENT_BACKGROUND = Color.rgb(20, 55, 48)
-        val PRESSED_BACKGROUND = Color.rgb(48, 66, 78)
-        val KEY_BORDER = Color.rgb(55, 70, 82)
-        val ACCENT_BORDER = Color.rgb(91, 224, 179)
-        val ACCENT = Color.rgb(91, 224, 179)
 
         // Exact visual order from the left edge to the right edge.
         val ARABIC_ROW_1 = KeyboardLayouts.ARABIC_ROWS[0].map { Key(it) }
