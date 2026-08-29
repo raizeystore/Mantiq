@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Mantiq</string>
+    <string name="keyboard_name">Mantiq Keyboard</string>
+    <string name="welcome_title">Mantiq</string>
+    <string name="welcome_body">اكتب بالعربية والإنجليزية، واستخدم الاختصارات الزمنية مباشرة من لوحة المفاتيح.</string>
+    <string name="version_label">الإصدار 0.3.0 • تجريبي</string>
+    <string name="setup_title">إعداد اللوحة</string>
+    <string name="enable_keyboard">الخطوة 1 • تفعيل Mantiq</string>
+    <string name="choose_keyboard">الخطوة 2 • اختيار Mantiq</string>
+    <string name="test_keyboard">اضغط هنا لتجربة لوحة Mantiq…</string>
+    <string name="open_keyboard">فتح لوحة Mantiq للتجربة</string>
+    <string name="status_disabled">الحالة: اللوحة غير مفعّلة</string>
+    <string name="status_enabled">الحالة: مفعّلة، لكن ليست اللوحة الحالية</string>
+    <string name="status_selected">الحالة: Mantiq مفعّلة ومختارة ✓</string>
+    <string name="status_disabled_detail">اضغط الخطوة 1، فعّل Mantiq في صفحة النظام، ثم ارجع إلى التطبيق.</string>
+    <string name="status_enabled_detail">اضغط الخطوة 2 واختر Mantiq من نافذة لوحات المفاتيح.</string>
+    <string name="status_selected_detail">اللوحة جاهزة. اضغط خانة التجربة أو زر فتح اللوحة.</string>
+    <string name="status_unknown">الحالة: تعذّر قراءة إعدادات اللوحة</string>
+    <string name="system_settings_explanation">مهم: الخطوة 1 ستخرج من Mantiq وتفتح إعدادات الهاتف. هذا سلوك Android الطبيعي لحماية المستخدم؛ فعّل Mantiq هناك ثم ارجع للتطبيق.</string>
+    <string name="keyboard_preferences_title">إعدادات الكتابة</string>
+    <string name="haptics_title">اهتزاز خفيف عند الضغط</string>
+    <string name="sound_title">صوت المفاتيح</string>
+    <string name="quick_tools_title">الأدوات السريعة</string>
+    <string name="quick_tools_body">من شريط اللوحة:
+• الوقت — يكتب الوقت الحالي فورًا
+• التاريخ — يكتب تاريخ اليوم فورًا
+• 123 — يفتح الأرقام والرموز
+
+الاختصارات الزمنية: !بعد1.5 ثم مسافة = الوقت بعد ساعة ونصف.</string>
+    <string name="test_title">جرّب اللوحة</string>
+    <string name="enable_first_message">فعّل Mantiq من إعدادات النظام أولاً.</string>
+    <string name="choose_first_message">اختر Mantiq كلوحة حالية أولاً.</string>
+    <string name="copy_diagnostics">نسخ تقرير التشخيص</string>
+    <string name="diagnostics_copied">تم نسخ تقرير التشخيص</string>
+    <string name="unexpected_error">حدث خطأ. انسخ تقرير التشخيص وأرسله لنا.</string>
+    <string name="safe_mode_title">Mantiq — الوضع الآمن</string>
+    <string name="safe_mode_body">تعطلت الواجهة الأساسية، لكن التطبيق ما زال يعمل. رمز الخطأ: %1$s</string>
+    <string name="subtype_arabic">Mantiq العربية</string>
+    <string name="subtype_english">Mantiq English</string>
+</resources>

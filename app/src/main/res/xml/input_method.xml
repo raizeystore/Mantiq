@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<input-method xmlns:android="http://schemas.android.com/apk/res/android"
+    android:icon="@drawable/ic_launcher_foreground"
+    android:settingsActivity="com.raizey.mantiq.MainActivity"
+    android:supportsSwitchingToNextInputMethod="true">
+
+    <subtype
+        android:icon="@mipmap/ic_launcher"
+        android:imeSubtypeLocale="ar"
+        android:imeSubtypeMode="keyboard"
+        android:label="@string/subtype_arabic"
+        android:languageTag="ar" />
+
+    <subtype
+        android:icon="@mipmap/ic_launcher"
+        android:imeSubtypeLocale="en_US"
+        android:imeSubtypeMode="keyboard"
+        android:label="@string/subtype_english"
+        android:languageTag="en-US" />
+</input-method>
